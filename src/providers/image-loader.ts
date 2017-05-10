@@ -444,12 +444,20 @@ export class ImageLoader {
             // therefore the file needs to be copied into that directory first!
             if (this.isWKWebView) {
 
+              // TEMPORARY: Remove 'file://' scheme from native URL to support Ionic's fork of WKWebView
+              const fileSchemeRemover = (nativeUrl: string) => {
+                if (nativeUrl.startsWith('file:///')) {
+                  return nativeUrl.slice(7);
+                }
+                return nativeUrl;
+              };
+
               // check if file already exists in temp directory
               this.file.resolveLocalFilesystemUrl(tempDirPath + '/' + fileName)
                 .then((tempFileEntry: FileEntry) => {
                   // file exists in temp directory
                   // return native path
-                  resolve(tempFileEntry.nativeURL);
+                  resolve(fileSchemeRemover(tempFileEntry.nativeURL));
                 })
                 .catch(() => {
                   // file does not yet exist in the temp directory.
@@ -458,7 +466,7 @@ export class ImageLoader {
                     .then((tempFileEntry: FileEntry) => {
                       // now the file exists in the temp directory
                       // return native path
-                      resolve(tempFileEntry.nativeURL);
+                      resolve(fileSchemeRemover(tempFileEntry.nativeURL));
                     })
                     .catch(reject);
                 });
